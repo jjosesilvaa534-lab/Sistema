@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel da Cozinha</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #1e1e2f;
+    color: white;
+    padding: 20px;
+}
+
+.pedido {
+    background: #2c2c3c;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+}
+
+button {
+    padding: 8px;
+    background: #ff6b00;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<h2>👨‍🍳 Painel da Cozinha</h2>
+
+<div id="listaPedidos"></div>
+
+<script>
+function carregarPedidos() {
+    const pedidos = JSON.parse(localStorage.getItem("pedidos")) || [];
+    const lista = document.getElementById("listaPedidos");
+    lista.innerHTML = "";
+
+    pedidos.forEach((pedido, index) => {
+
+        // Filtrar apenas itens da cozinha
+        const itensCozinha = pedido.itens.filter(item => item.setor === "cozinha");
+
+        if (itensCozinha.length > 0 && pedido.status === "pendente") {
+
+            const div = document.createElement("div");
+            div.classList.add("pedido");
+
+            div.innerHTML = `
+                <h3>Mesa ${pedido.mesa}</h3>
+                <p><strong>Garçom:</strong> ${pedido.garcom}</p>
+                <p><strong>Data:</strong> ${pedido.data}</p>
+                <ul>
+                    ${itensCozinha.map(item => 
+                        `<li>${item.nome} x${item.quantidade}</li>`
+                    ).join("")}
+                </ul>
+                <button onclick="finalizarPedido(${index})">Finalizar</button>
+            `;
+
+            lista.appendChild(div);
+        }
+    });
+}
+
+function finalizarPedido(index) {
+    const pedidos = JSON.parse(localStorage.getItem("pedidos")) || [];
+    pedidos[index].status = "finalizado";
+    localStorage.setItem("pedidos", JSON.stringify(pedidos));
+    carregarPedidos();
+}
+
+carregarPedidos();
+
+// Atualiza automaticamente a cada 3 segundos
+setInterval(carregarPedidos, 3000);
+</script>
+
+</body>
+</html>

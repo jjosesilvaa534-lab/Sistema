@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Administrativo</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #1e1e2f;
+    color: white;
+    padding: 20px;
+}
+
+.card {
+    background: #2c2c3c;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+}
+
+h3 {
+    margin-top: 0;
+}
+
+table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    border-bottom: 1px solid #555;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+
+<h2>👑 Painel Administrativo</h2>
+
+<div class="card">
+    <h3>📊 Resumo do Dia</h3>
+    <p>Total de Vendas: R$ <span id="totalVendas">0</span></p>
+    <p>Total de Mesas Fechadas: <span id="totalMesas">0</span></p>
+    <p>Produto Mais Vendido: <span id="produtoTop">-</span></p>
+    <p>Garçom Destaque: <span id="garcomTop">-</span></p>
+</div>
+
+<div class="card">
+    <h3>📦 Estoque Baixo (menos de 5)</h3>
+    <ul id="estoqueBaixo"></ul>
+</div>
+
+<div class="card">
+    <h3>🧾 Histórico de Vendas</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Mesa</th>
+                <th>Garçom</th>
+                <th>Total</th>
+                <th>Pagamento</th>
+                <th>Data</th>
+            </tr>
+        </thead>
+        <tbody id="listaVendas"></tbody>
+    </table>
+</div>
+
+<script>
+function carregarPainel() {
+
+    const vendas = JSON.parse(localStorage.getItem("vendas")) || [];
+    const produtos = JSON.parse(localStorage.getItem("produtos")) || [];
+    const pedidos = JSON.parse(localStorage.getItem("pedidos")) || [];
+
+    let totalVendas = 0;
+    let contadorGarcom = {};
+    let contadorProduto = {};
+
+    vendas.forEach(venda => {
+        totalVendas += venda.totalFinal;
+
+        contadorGarcom[venda.garcom] = (contadorGarcom[venda.garcom] || 0) + venda.totalFinal;
+    });
+
+    pedidos.forEach(pedido => {
+        pedido.itens.forEach(item => {
+            contadorProduto[item.nome] = (contadorProduto[item.nome] || 0) + item.quantidade;
+        });
+    });
+
+    // Produto mais vendido
+    let produtoTop = "-";
+    let maiorQtd = 0;
+
+    for (let produto in contadorProduto) {
+        if (contadorProduto[produto] > maiorQtd) {
+            maiorQtd = contadorProduto[produto];
+            produtoTop = produto;
+        }
+    }
+
+    // Garçom destaque
+    let garcomTop = "-";
+    let maiorVenda = 0;
+
+    for (let garcom in contadorGarcom) {
+        if (contadorGarcom[garcom] > maiorVenda) {
+            maiorVenda = contadorGarcom[garcom];
+            garcomTop = garcom;
+        }
+    }
+
+    document.getElementById("totalVendas").innerText = totalVendas.toFixed(2);
+    document.getElementById("totalMesas").innerText = vendas.length;
+    document.getElementById("produtoTop").innerText = produtoTop;
+    document.getElementById("garcomTop").innerText = garcomTop;
+
+    // Estoque baixo
+    const estoqueLista = document.getElementById("estoqueBaixo");
+    estoqueLista.innerHTML = "";
+
+    produtos.forEach(produto => {
+        if (produto.estoque < 5) {
+            const li = document.createElement("li");
+            li.innerText = `${produto.nome} - Estoque: ${produto.estoque}`;
+            estoqueLista.appendChild(li);
+        }
+    });
+
+    // Lista de vendas
+    const listaVendas = document.getElementById("listaVendas");
+    listaVendas.innerHTML = "";
+
+    vendas.forEach(venda => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${venda.mesa}</td>
+            <td>${venda.garcom}</td>
+            <td>R$ ${venda.totalFinal.toFixed(2)}</td>
+            <td>${venda.pagamento}</td>
+            <td>${venda.data}</td>
+        `;
+        listaVendas.appendChild(tr);
+    });
+}
+
+carregarPainel();
+setInterval(carregarPainel, 5000);
+</script>
+
+</body>
+</html>

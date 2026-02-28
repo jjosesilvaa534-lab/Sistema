@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Administrativo</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #1e1e2f;
+    color: white;
+    padding: 20px;
+}
+
+.container {
+    background: #2c2c3c;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 600px;
+    margin: auto;
+}
+
+input, select {
+    padding: 8px;
+    margin: 5px 0;
+    width: 100%;
+}
+
+button {
+    padding: 10px;
+    background: #ff6b00;
+    border: none;
+    color: white;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 8px;
+    border-bottom: 1px solid #555;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+
+<h2>👑 Painel Administrativo</h2>
+
+<div class="container">
+    <h3>Cadastrar Produto</h3>
+
+    <input type="text" id="nome" placeholder="Nome do produto">
+    
+    <input type="number" id="preco" placeholder="Preço">
+    
+    <input type="number" id="estoque" placeholder="Quantidade em estoque">
+
+    <select id="categoria">
+        <option value="">Selecione categoria</option>
+        <option value="cozinha">Cozinha</option>
+        <option value="bar">Bar</option>
+    </select>
+
+    <button onclick="adicionarProduto()">Adicionar Produto</button>
+
+    <h3>Lista de Produtos</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Categoria</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody id="listaProdutos"></tbody>
+    </table>
+</div>
+
+<script>
+function carregarProdutos() {
+    const produtos = JSON.parse(localStorage.getItem("produtos")) || [];
+    const lista = document.getElementById("listaProdutos");
+    lista.innerHTML = "";
+
+    produtos.forEach((produto, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${produto.nome}</td>
+            <td>R$ ${produto.preco.toFixed(2)}</td>
+            <td>${produto.estoque}</td>
+            <td>${produto.categoria}</td>
+            <td><button onclick="removerProduto(${index})">Excluir</button></td>
+        `;
+        lista.appendChild(tr);
+    });
+}
+
+function adicionarProduto() {
+    const nome = document.getElementById("nome").value;
+    const preco = parseFloat(document.getElementById("preco").value);
+    const estoque = parseInt(document.getElementById("estoque").value);
+    const categoria = document.getElementById("categoria").value;
+
+    if (!nome || !preco || !estoque || !categoria) {
+        alert("Preencha todos os campos!");
+        return;
+    }
+
+    const produtos = JSON.parse(localStorage.getItem("produtos")) || [];
+
+    produtos.push({
+        nome,
+        preco,
+        estoque,
+        categoria
+    });
+
+    localStorage.setItem("produtos", JSON.stringify(produtos));
+
+    document.getElementById("nome").value = "";
+    document.getElementById("preco").value = "";
+    document.getElementById("estoque").value = "";
+    document.getElementById("categoria").value = "";
+
+    carregarProdutos();
+}
+
+function removerProduto(index) {
+    const produtos = JSON.parse(localStorage.getItem("produtos")) || [];
+    produtos.splice(index, 1);
+    localStorage.setItem("produtos", JSON.stringify(produtos));
+    carregarProdutos();
+}
+
+carregarProdutos();
+</script>
+
+</body>
+</html>
